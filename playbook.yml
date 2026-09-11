@@ -1,0 +1,21 @@
+---
+- name: Configure AWS Docker Host Server
+  hosts: portfolio_servers
+  become: true
+
+  tasks:
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+
+    - name: Install Docker Engine
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Ensure Docker service is running and enabled on boot
+      service:
+        name: docker
+        state: started
+        enabled: yes
