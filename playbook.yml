@@ -1,5 +1,5 @@
 ---
-- name: Configure AWS Docker Host Server
+- name: Configure AWS Docker Host Server and Deploy App
   hosts: portfolio_servers
   become: true
 
@@ -9,13 +9,23 @@
         update_cache: yes
         force_apt_get: yes
 
-    - name: Install Docker Engine
+    - name: Install Docker Engine and Prerequisites
       apt:
-        name: docker.io
+        name:
+          - docker.io
+          - python3-pip
         state: present
 
-    - name: Ensure Docker service is running and enabled on boot
-      service:
-        name: docker
-        state: started
-        enabled: yes
+    # New: Install AWS CLI on the server so it can authenticate with ECR
+    - name: Install AWS CLI on server
+      apt:
+        name: awscli
+        state: present
+
+    # Log Docker on the EC2 server into your private AWS ECR Registry
+    - name: Log Docker into Amazon ECR
+      shell: "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 590183695245.dkr.ecr.us-east-1.amazonaws.com"
+
+    # Pull and run your portfolio app container from ECR
+    - name: Run Portfolio App Container
+      shell: "docker run -d -p 8080:8080 --name my-portfolio-app --restart always 590183695245.dkr.ecr.us-east-1.amazonaws.com/devops-portfolio-app:latest"

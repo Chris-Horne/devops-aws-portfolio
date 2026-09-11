@@ -55,6 +55,34 @@ resource "aws_key_pair" "deployer_key" {
   public_key = file("~/.ssh/id_rsa.pub")
 }
 
+# New: Create an IAM Role for the EC2 Instance to read from ECR
+resource "aws_iam_role" "ec2_ecr_role" {
+  name = "portfolio-ec2-ecr-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action    = "sts:AssumeRole"
+        Effect    = "Allow"
+        Principal = { Service = "ec2.amazonaws.com" }
+      }
+    ]
+  })
+}
+
+# Attach the official AWS ReadOnly policy for ECR to our role
+resource "aws_iam_role_policy_attachment" "ecr_read_only" {
+  role       = aws_iam_role.ec2_ecr_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+# Create the final profile badge that attaches to the instance
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "portfolio-ec2-instance-profile"
+  role = aws_iam_role.ec2_ecr_role.name
+}
+
 
 # 4. AWS EC2 Container Host
 resource "aws_instance" "devops_server" {
@@ -62,6 +90,8 @@ resource "aws_instance" "devops_server" {
   instance_type = "t3.micro"
   key_name               = aws_key_pair.deployer_key.key_name 
   vpc_security_group_ids = [aws_security_group.web_sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name # <--- Add this!
+
 
   tags = {
     Name = "DevOps-Portfolio-Host"
