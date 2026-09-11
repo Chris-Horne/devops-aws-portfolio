@@ -16,7 +16,7 @@ provider "aws" {
 resource "aws_ecr_repository" "portfolio_app_repo" {
   name                 = "devops-portfolio-app"
   image_tag_mutability = "MUTABLE"
-
+  force_delete         = true
   image_scanning_configuration {
     scan_on_push = true
   }
