@@ -1,4 +1,4 @@
-name: Build and Push App to AWS ECR
+name: Build and Deploy Portfolio Pipeline
 
 on:
   push:
@@ -36,3 +36,23 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    # 5. Set up the SSH Private Key on the GitHub Runner
+    - name: Set up SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+    # 6. Install Ansible on the GitHub Runner
+    - name: Install Ansible
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ansible
+
+    # 7. Execute the Ansible Playbook to deploy the container onto EC2
+    - name: Run Ansible Playbook
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: False
+      run: |
+        ansible-playbook -i inventory.ini playbook.yml
