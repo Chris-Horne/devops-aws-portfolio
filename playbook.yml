@@ -39,7 +39,3 @@
     # Pull and run your portfolio app container from ECR
     - name: Run Portfolio App Container
       shell: "docker run -d -p 8080:8080 --name my-portfolio-app --restart always 590183695245.dkr.ecr.us-east-1.amazonaws.com/devops-portfolio-app:latest"
-
-    # Pull and run your portfolio app container from ECR
-    - name: Run Portfolio App Container
-      shell: "docker run -d -p 8080:8080 --name my-portfolio-app --restart always 590183695245.dkr.ecr.us-east-1.amazonaws.com/devops-portfolio-app:latest"
