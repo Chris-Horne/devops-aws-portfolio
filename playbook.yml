@@ -26,6 +26,20 @@
     - name: Log Docker into Amazon ECR
       shell: "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 590183695245.dkr.ecr.us-east-1.amazonaws.com"
 
+    # New: Stop the old running container if it exists
+    - name: Stop old portfolio container
+      shell: "docker stop my-portfolio-app"
+      failed_when: false # Ignore errors if the container isn't running yet
+
+    # New: Delete the old container structure so the name is freed up
+    - name: Remove old portfolio container
+      shell: "docker rm my-portfolio-app"
+      failed_when: false # Ignore errors if the container doesn't exist yet
+
+    # Pull and run your portfolio app container from ECR
+    - name: Run Portfolio App Container
+      shell: "docker run -d -p 8080:8080 --name my-portfolio-app --restart always 590183695245.dkr.ecr.us-east-1.amazonaws.com/devops-portfolio-app:latest"
+
     # Pull and run your portfolio app container from ECR
     - name: Run Portfolio App Container
       shell: "docker run -d -p 8080:8080 --name my-portfolio-app --restart always 590183695245.dkr.ecr.us-east-1.amazonaws.com/devops-portfolio-app:latest"
